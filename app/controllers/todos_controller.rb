@@ -6,15 +6,15 @@ class TodosController < ApplicationController
   def index
     @todos = Todo.where(:user_id => @user.id)
 
-    render json: @todos
+    render json: @todos, status: :success
   end
 
   # GET /todos/1
   def show
     if @user.id != @todo.user_id
-      render json: {error: "It is not your list"}
+      render json: {error: "It is not your list", status: authorized}
     else 
-      render json: @todo
+      render json: @todo, status: :success
     end
   end
 
@@ -34,7 +34,7 @@ class TodosController < ApplicationController
     if @user.id != @todo.user_id
       render json: {error: "It is not your list"}
     else
-      if @todo.update(:description => description, :completed => completed)
+      if @todo.update(:description => description, :completed => completed, status: :success)
         render json: @todo
       else
         render json: @todo.errors, status: :unprocessable_entity
@@ -48,10 +48,10 @@ class TodosController < ApplicationController
   # DELETE /todos/1
   def destroy
     if @user.id != @todo.user_id
-      render json: {error: "It is not your list"}
+      render json: {error: "It is not your list", status: :unauthorized}
     else 
       @todo.destroy
-      render json: {message: "deleted successfully"}
+      render json: {message: "deleted successfully", status: :success}
     end
   end
 
