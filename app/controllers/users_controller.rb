@@ -7,7 +7,7 @@ class UsersController < ApplicationController
 
         if @user.valid?
           token = encode_token({user_id: @user.id})
-          render json: {user: @user, token: token}
+          render json: {user: @user, token: token, status: :created}
         else
           render json: {error: "Invalid username or password"}
         end
@@ -18,9 +18,9 @@ class UsersController < ApplicationController
     
         if @user && @user.authenticate(pass)
           token = encode_token({user_id: @user.id})
-          render json: {user: @user, token: token}
+          render json: {user: @user, token: token, status: :success}
         else
-          render json: {error: "Invalid username or password"}
+          render json: {error: "Invalid username or password", status: :unauthorized}
         end
       end
 

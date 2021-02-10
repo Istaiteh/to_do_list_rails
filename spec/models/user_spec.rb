@@ -1,7 +1,15 @@
+require "rspec/expectations"
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  
+  before(:example) do
+    Todo.delete_all
+    User.delete_all
+  end
+  after(:example) do
+    Todo.delete_all
+    User.delete_all
+  end
   it "has 0 user at the start" do
     expect(User.count).to eq(0) 
   end
