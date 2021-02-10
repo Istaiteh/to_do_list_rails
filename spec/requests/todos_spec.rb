@@ -129,9 +129,15 @@ RSpec.describe "/todos", type: :request do
     context "with invalid parameters" do
       it "renders a JSON response with errors for the todo unautharized" do
 
-        patch "/todos/#{@todo_id }",
+        patch "/todos/#{@todo_id}",
         params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token2}"} , as: :json
         expect(response).to have_http_status(:unauthorized)
+        expect(response.content_type).to eq("application/json; charset=utf-8")
+      end
+      it "renders a JSON response with errors for the unvalid parameters" do
+        patch "/todos/#{@todo_id}",
+        params: {}, headers: {:completed => true ,:Authorization => "Bearer #{@token}"} , as: :json
+        expect(response).to have_http_status(:unprocessable_entity)
         expect(response.content_type).to eq("application/json; charset=utf-8")
       end
     end
@@ -142,6 +148,11 @@ RSpec.describe "/todos", type: :request do
       expect {
         delete "/todos/#{@todo_id }", headers: @valid_headers, as: :json
       }.to change(Todo, :count).by(-1)
+    end
+    it "it does not destroys the to do if it is not yours" do
+      expect {
+        delete "/todos/#{@todo_id }", headers: {:Authorization => "Bearer #{@token2}"}, as: :json
+      }.to change(Todo, :count).by(0)
     end
   end
 end
