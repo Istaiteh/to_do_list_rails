@@ -45,7 +45,6 @@ RSpec.describe "Users", type: :request do
             post "/login", :headers=> {:username => "othman",:password =>"123456789"} 
             token = "Bearer #{JSON.parse(response.body)["token"]}"
             get "/auto_login", as: :json, headers: {:Authorization => token}
-            puts(response.body)
             expect(JSON.parse(response.body)["id"]).to eq(user.id) 
         end 
     end

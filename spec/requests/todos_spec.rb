@@ -55,7 +55,6 @@ RSpec.describe "/todos", type: :request do
     end
     it "it does not render item of another user" do
       get "/todos/#{@todo_id }", headers: @valid_headers2, as: :json
-      puts response.body
       expect(response).to have_http_status(:unauthorized)
     end
   end
