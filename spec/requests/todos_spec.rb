@@ -39,11 +39,7 @@ RSpec.describe "/todos", type: :request do
   # in order to pass any filters (e.g. authentication) defined in
   # TodosController, or in your router and rack
   # middleware. Be sure to keep this updated too.
-  let(:valid_headers) {
-    {
-      :Authorization => @token
-    }
-  }
+
 
   describe "GET /index" do
     it "renders a successful response" do
@@ -107,9 +103,7 @@ RSpec.describe "/todos", type: :request do
 
   describe "PATCH /update" do
     context "with valid parameters" do
-      let(:new_attributes) {
-        {:description => "first", :completed => true }
-      }
+
 
       it "updates the requested todo" do
         patch "/todos/#{@todo_id}", params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token}"}, as: :json

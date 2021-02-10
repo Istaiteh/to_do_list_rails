@@ -48,12 +48,6 @@ RSpec.describe "Users", type: :request do
             puts(response.body)
             expect(JSON.parse(response.body)["id"]).to eq(user.id) 
         end 
-        skip it "invalid token" do 
-            token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxfQ.Ep_ANyNQKhoaUpPvY_8Pte-z-OaGrHa2KdcwcNMMloa"
-            get "/auto_login", as: :json, headers: {:Authorization => token}
-            puts(response.body)
-            expect(JSON.parse(response.body)["id"]).to eq(user.id) 
-        end
     end
 
 end
