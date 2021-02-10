@@ -12,7 +12,7 @@ class TodosController < ApplicationController
   # GET /todos/1
   def show
     if @user.id != @todo.user_id
-      render json: {error: "It is not your item", status: :authorized}
+      render json: {error: "It is not your item"}, :status => :unauthorized
     else 
       render json: {data: @todo, status: :success}
     end
@@ -20,6 +20,7 @@ class TodosController < ApplicationController
 
   # POST /todos
   def create
+    
     @todo = Todo.new(:description => description, :user_id => @user.id, :completed => completed)
 
     if @todo.save
@@ -32,7 +33,7 @@ class TodosController < ApplicationController
   # PATCH/PUT /todos/1
   def update
     if @user.id != @todo.user_id
-      render json: {error: "It is not your list"}
+      render json: {error: "It is not your list"}, :status => :unauthorized
     else
       if @todo.update(:description => description, :completed => completed)
         render json: @todo
@@ -63,7 +64,7 @@ class TodosController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def description
-      request.headers['descreption']
+      request.headers['description']
     end
     def completed
       request.headers['completed']

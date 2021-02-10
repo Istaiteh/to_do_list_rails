@@ -25,6 +25,10 @@ RSpec.describe "/todos", type: :request do
     @todo_id = User.find(@id).todos.first.id 
     @token = cont.encode_token({user_id: @id})
     @valid_headers = {:Authorization => "Bearer #{@token}"}
+    @id2 = User.second.id
+    @todo_id2 = User.find(@id2).todos.first.id 
+    @token2 = cont.encode_token({user_id: @id2})
+    @valid_headers2 = {:Authorization => "Bearer #{@token2}"}
   end
   after(:example) do
     Todo.delete_all
@@ -60,20 +64,25 @@ RSpec.describe "/todos", type: :request do
       get "/todos/#{@todo_id }", headers: @valid_headers, as: :json
       expect(response).to be_successful
     end
+    it "it does not render item of another user" do
+      get "/todos/#{@todo_id }", headers: @valid_headers2, as: :json
+      puts response.body
+      expect(response).to have_http_status(:unauthorized)
+    end
   end
 
   describe "POST /create" do
     context "with valid parameters" do
       it "creates a new Todo" do
         expect {
-          post todos_url,
-               params: { :description => "first", :completed => true  }, headers: @valid_headers, as: :json
+          post "/todos",
+               params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token}"}, as: :json
         }.to change(Todo, :count).by(1)
       end
 
       it "renders a JSON response with the new todo" do
         post todos_url,
-        params: { :description => "first", :completed => true  }, headers: @valid_headers, as: :json
+        params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token}"}, as: :json
         expect(response).to have_http_status(:created)
         expect(response.content_type).to match(a_string_including("application/json"))
       end
@@ -83,16 +92,23 @@ RSpec.describe "/todos", type: :request do
       it "does not create a new Todo if no auth" do
         expect {
           post todos_url,
-               params: { :description => "first", :completed => true }, as: :json
+          params: {}, headers: {:description => "first", :completed => true}, as: :json
         }.to change(Todo, :count).by(0)
       end
 
       it "renders a JSON response with errors for the new todo" do
         post todos_url,
-             params: { :description => "first", :completed => true  }, as: :json
+        params: {}, headers: {:description => "first", :completed => true}, as: :json
         expect(response).to have_http_status(:unauthorized)
         expect(response.content_type).to eq("application/json; charset=utf-8")
       end
+    end
+    context "It does not save bad request"
+    it "does not create a new Todo" do
+      expect {
+        post todos_url,
+        params: {}, headers: { :completed => true ,:Authorization => "Bearer #{@token}"}, as: :json
+      }.to change(Todo, :count).by(0)
     end
   end
 
@@ -103,15 +119,15 @@ RSpec.describe "/todos", type: :request do
       }
 
       it "updates the requested todo" do
-        patch "/todos/#{@todo_id }", params: { :description => "first", :completed => true }, headers: @valid_headers, as: :json
+        patch "/todos/#{@todo_id}", params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token}"}, as: :json
 
-        expect(Todo.find(@todo_id)[:descreption]).to eq(new_attributes[:descreption])
+        expect(Todo.find(@todo_id)[:description]).to eq("first")
       end
 
       it "renders a JSON response with the todo" do
 
         patch "/todos/#{@todo_id }",
-              params: { todo: new_attributes }, headers: @valid_headers, as: :json
+        params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token}"}, as: :json
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to match(a_string_including("application/json"))
       end
@@ -121,7 +137,7 @@ RSpec.describe "/todos", type: :request do
       it "renders a JSON response with errors for the todo unautharized" do
 
         patch "/todos/#{@todo_id }",
-              params: { todo: {:description => "first", :completed => true } }, as: :json
+        params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token2}"} , as: :json
         expect(response).to have_http_status(:unauthorized)
         expect(response.content_type).to eq("application/json; charset=utf-8")
       end
