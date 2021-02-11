@@ -1,39 +1,34 @@
 require 'rails_helper'
 
 RSpec.describe "Users", type: :request do
-    before(:example) do
-        Todo.delete_all
-        User.delete_all
-      end
-      after(:example) do
-        Todo.delete_all
-        User.delete_all
-      end
     describe "Post creater" do
         it "it create a new user" do 
+        user = User.new(({:username => "othman", :password =>"123456789", :id => 1}))
+        allow(User).to receive(:create).with({:username => "othman",:password =>"123456789"} ).and_return(user)
+        allow(User).to receive(:count).and_return(1)
         post "/users/create", :headers=> {:username => "othman",:password =>"123456789"} 
         expect(User.count).to eq(1)
         end
 
         it "respond to short username" do 
+            allow(User).to receive(:create).with({:username => "ot", :password =>"123456789"} ).and_return(User.new({:username => "ot", :password =>"123456789"} ))
             post "/users/create", :headers=> {:username => "ot", :password =>"123456789"} 
             expect(response.body).to match(/Invalid username or password/)
-        end
-        it "does not create dublicate users" do 
-            post "/users/create", :headers=> {:username => "othman",:password =>"123456789"} 
-            post "/users/create", :headers=> {:username => "othman",:password =>"1234589"} 
-            expect(User.count).to eq(1)
         end
     end
 
     describe "Post login" do 
         it "it success on correct log in" do
-            User.create(:username => "othman", :password => "123456789")
+            user = User.new(({:username => "othman", :password =>"123456789", :id => 1}))
+            allow(User).to receive(:find_by).with({:username => "othman"}).and_return(user)
+            allow(user).to receive(:authenticate).with("123456789").and_return(true)
             post "/login", :headers=> {:username => "othman",:password =>"123456789"} 
             expect(JSON.parse(response.body)["status"]).to match(/success/)
         end 
-        it "it does not success on correct log in" do
-            User.create(:username => "othman", :password => "123456789")
+        it "it does not success on wrong log in" do
+            user = User.new(({:username => "othman", :password =>"123456789", :id => 1}))
+            allow(User).to receive(:find_by).with({:username => "othman"}).and_return(user)
+            allow(user).to receive(:authenticate).with("12").and_return(false)
             post "/login", :headers=> {:username => "othman",:password =>"12"} 
             expect(JSON.parse(response.body)["status"]).to match(/unauthorized/)
         end 
@@ -41,10 +36,12 @@ RSpec.describe "Users", type: :request do
 
     describe "Auto login" do
         it "returns the user information if logged in" do
-            user = User.create(:username => "othman", :password => "123456789")
-            post "/login", :headers=> {:username => "othman",:password =>"123456789"} 
-            token = "Bearer #{JSON.parse(response.body)["token"]}"
-            get "/auto_login", as: :json, headers: {:Authorization => token}
+            cont = ApplicationController.new
+            user = User.new(:username => "othman", :password => "123456789", :id => 1)
+            allow(User).to receive(:find_by).with({:id => 1}).and_return(user)
+            token = cont.encode_token({user_id: user.id})
+            headers = {:Authorization => "Bearer #{token}"}
+            get "/auto_login", as: :json, headers: headers
             expect(JSON.parse(response.body)["id"]).to eq(user.id) 
         end 
     end
