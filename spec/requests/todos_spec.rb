@@ -43,18 +43,41 @@ RSpec.describe "/todos", type: :request do
 
   describe "GET /index" do
     it "renders a successful response" do
-      get todos_url, headers: @valid_headers, as: :json
+      cont = ApplicationController.new
+      user = User.new(:username => "othman", :password => "123456789", :id => 1)
+      allow(User).to receive(:find_by).with({:id => 1}).and_return(user)
+      token = cont.encode_token({user_id: user.id})
+      headers = {:Authorization => "Bearer #{token}"}
+      item1 = Todo.new({:user_id =>1, :description =>"item1" })
+      item2 = Todo.new({:user_id =>1, :description =>"item2" })
+      items = [item1, item2]
+      allow(Todo).to receive(:where).with({:user_id => user.id}).and_return(items)
+      get todos_url, headers: headers, as: :json
       expect(response).to be_successful
     end
   end
 
   describe "GET /show" do
     it "renders a successful response" do
-      get "/todos/#{@todo_id }", headers: @valid_headers, as: :json
+      cont = ApplicationController.new
+      user = User.new(:username => "othman", :password => "123456789", :id => 1)
+      allow(User).to receive(:find_by).with({:id => 1}).and_return(user)
+      token = cont.encode_token({user_id: user.id})
+      headers = {:Authorization => "Bearer #{token}"}
+      item1 = Todo.new({:user_id =>1, :description =>"item1" ,:id => 1})
+      allow(Todo).to receive(:find).with("1").and_return(item1)
+      get "/todos/1", headers: headers, as: :json
       expect(response).to be_successful
     end
     it "it does not render item of another user" do
-      get "/todos/#{@todo_id }", headers: @valid_headers2, as: :json
+      cont = ApplicationController.new
+      user = User.new(:username => "othman", :password => "123456789", :id => 2)
+      allow(User).to receive(:find_by).with({:id => 2}).and_return(user)
+      token = cont.encode_token({user_id: user.id})
+      headers = {:Authorization => "Bearer #{token}"}
+      item1 = Todo.new({:user_id =>1, :description =>"item1" ,:id => 1})
+      allow(Todo).to receive(:find).with("1").and_return(item1)
+      get "/todos/1", headers: headers, as: :json
       expect(response).to have_http_status(:unauthorized)
     end
   end
