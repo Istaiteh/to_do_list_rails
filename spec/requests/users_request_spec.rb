@@ -5,6 +5,7 @@ RSpec.describe "Users", type: :request do
         it "it create a new user" do 
         user = User.new(({:username => "othman", :password =>"123456789", :id => 1}))
         allow(User).to receive(:create).with({:username => "othman",:password =>"123456789"} ).and_return(user)
+        allow(user).to receive(:valid?).and_return(true)
         allow(User).to receive(:count).and_return(1)
         post "/users/create", :headers=> {:username => "othman",:password =>"123456789"} 
         expect(User.count).to eq(1)
