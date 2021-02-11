@@ -7,7 +7,12 @@ class PostsController < ApplicationController
 
     def show
         url = "https://jsonplaceholder.typicode.com/posts/#{params["id"]}"
-        body = RestClient.get(url)
-        render json: {post: JSON.parse(body)}, :status => :ok
+        begin 
+            body = RestClient.get(url) 
+        rescue RestClient::NotFound
+            render json: {}, :status => 404
+        else 
+            render json: {post: JSON.parse(body)}, :status => :ok
+        end 
     end
 end
