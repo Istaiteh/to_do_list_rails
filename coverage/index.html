@@ -14,7 +14,7 @@
       <img src="./assets/0.12.3/loading.gif" alt="loading"/>
     </div>
     <div id="wrapper" class="hide">
-      <div class="timestamp">Generated <abbr class="timeago" title="2021-02-14T17:24:32+02:00">2021-02-14T17:24:32+02:00</abbr></div>
+      <div class="timestamp">Generated <abbr class="timeago" title="2021-02-14T17:40:53+02:00">2021-02-14T17:40:53+02:00</abbr></div>
       <ul class="group_tabs"></ul>
 
       <div id="content">
@@ -2400,7 +2400,7 @@
 
             
 
-            <code class="ruby">          render json: {user: @user, token: token, status: :created}</code>
+            <code class="ruby">          render json: {user: @user, token: token}, status: :created</code>
           </li>
         </div>
       
@@ -2422,7 +2422,7 @@
 
             
 
-            <code class="ruby">          render json: {error: &quot;Invalid username or password&quot;}</code>
+            <code class="ruby">          render json: {error: &quot;Invalid username or password&quot;}, status: :unauthorized</code>
           </li>
         </div>
       
@@ -2521,7 +2521,7 @@
 
             
 
-            <code class="ruby">          render json: {user: @user, token: token, status: :success}</code>
+            <code class="ruby">          render json: {user: @user, token: token}, status: :ok</code>
           </li>
         </div>
       
@@ -2543,7 +2543,7 @@
 
             
 
-            <code class="ruby">          render json: {error: &quot;Invalid username or password&quot;, status: :unauthorized}</code>
+            <code class="ruby">          render json: {error: &quot;Invalid username or password&quot;}, status: :unauthorized</code>
           </li>
         </div>
       
@@ -11418,7 +11418,7 @@
 
             
 
-            <code class="ruby">            expect(JSON.parse(response.body)[&quot;status&quot;]).to match(/success/)</code>
+            <code class="ruby">            expect(response).to be_successful</code>
           </li>
         </div>
       
@@ -11495,7 +11495,7 @@
 
             
 
-            <code class="ruby">            expect(JSON.parse(response.body)[&quot;status&quot;]).to match(/unauthorized/)</code>
+            <code class="ruby">            expect(response).to have_http_status(:unauthorized)</code>
           </li>
         </div>
       

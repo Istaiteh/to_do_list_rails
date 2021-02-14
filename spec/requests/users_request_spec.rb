@@ -24,14 +24,14 @@ RSpec.describe "Users", type: :request do
             allow(User).to receive(:find_by).with({:username => "othman"}).and_return(user)
             allow(user).to receive(:authenticate).with("123456789").and_return(true)
             post "/login", :headers=> {:username => "othman",:password =>"123456789"} 
-            expect(JSON.parse(response.body)["status"]).to match(/success/)
+            expect(response).to be_successful
         end 
         it "it does not success on wrong log in" do
             user = User.new(({:username => "othman", :password =>"123456789", :id => 1}))
             allow(User).to receive(:find_by).with({:username => "othman"}).and_return(user)
             allow(user).to receive(:authenticate).with("12").and_return(false)
             post "/login", :headers=> {:username => "othman",:password =>"12"} 
-            expect(JSON.parse(response.body)["status"]).to match(/unauthorized/)
+            expect(response).to have_http_status(:unauthorized)
         end 
     end 
 
