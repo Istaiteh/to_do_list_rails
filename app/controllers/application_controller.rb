@@ -33,6 +33,6 @@ class ApplicationController < ActionController::API
     end
     private 
       def secret
-      "a784795793b3c28cf08efa367c1abdd1365a8312080a5ad7a1bb91e189c0918e4c35b08b8df02d18264dbaccff619fa73ef2f3eacfe88b4fc49309d4b3b911f1"
+        Rails.application.credentials.dig(:secret_key_base)
       end
 end
