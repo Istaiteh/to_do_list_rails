@@ -16,24 +16,6 @@ RSpec.describe "/todos", type: :request do
   # This should return the minimal set of attributes required to create a valid
   # Todo. As you add validations to Todo, be sure to
   # adjust the attributes here as well.
-  before(:example) do 
-    cont = ApplicationController.new
-      Todo.delete_all
-      User.delete_all
-    Rails.application.load_seed
-    @id = User.first.id
-    @todo_id = User.find(@id).todos.first.id 
-    @token = cont.encode_token({user_id: @id})
-    @valid_headers = {:Authorization => "Bearer #{@token}"}
-    @id2 = User.second.id
-    @todo_id2 = User.find(@id2).todos.first.id 
-    @token2 = cont.encode_token({user_id: @id2})
-    @valid_headers2 = {:Authorization => "Bearer #{@token2}"}
-  end
-  after(:example) do
-    Todo.delete_all
-    User.delete_all
-  end
 
   # This should return the minimal set of values that should be in the headers
   # in order to pass any filters (e.g. authentication) defined in
@@ -154,10 +136,10 @@ RSpec.describe "/todos", type: :request do
       it "updates the requested todo" do
         cont = ApplicationController.new
         user = User.new(:username => "othman", :password => "123456789", :id => 1)
+        todo = Todo.new({:user_id =>1, :description =>"first" ,:id => 1})
         allow(User).to receive(:find_by).with({:id => 1}).and_return(user)
         token = cont.encode_token({user_id: user.id})
         headers = {:Authorization => "Bearer #{token}"}
-        todo = Todo.new({:user_id =>1, :description =>"first" ,:id => 1})
         allow(Todo).to receive(:find).with("1").and_return(todo)
         allow(todo).to receive(:update).and_return(true)
         patch "/todos/1", params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{token}"}, as: :json
@@ -168,15 +150,31 @@ RSpec.describe "/todos", type: :request do
 
     context "with invalid parameters" do
       it "renders a JSON response with errors for the todo unautharized" do
+        cont = ApplicationController.new
+        user = User.new(:username => "othman", :password => "123456789", :id => 2)
+        todo = Todo.new({:user_id =>1, :description =>"first" ,:id => 1})
+        allow(User).to receive(:find_by).with({:id => 2}).and_return(user)
+        token = cont.encode_token({user_id: user.id})
+        headers = {:Authorization => "Bearer #{token}"}
+        allow(Todo).to receive(:find).with({:id => 1}).and_return(todo)
+        allow(Todo).to receive(:find).with("1").and_return(todo)
+        allow(todo).to receive(:update).and_return(true)
 
-        patch "/todos/#{@todo_id}",
-        params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{@token2}"} , as: :json
+        patch "/todos/1", params: {}, headers: {:description => "first", :completed => true ,:Authorization => "Bearer #{token}"}, as: :json
         expect(response).to have_http_status(:unauthorized)
         expect(response.content_type).to eq("application/json; charset=utf-8")
       end
       it "renders a JSON response with errors for the unvalid parameters" do
-        patch "/todos/#{@todo_id}",
-        params: {}, headers: {:completed => true ,:Authorization => "Bearer #{@token}"} , as: :json
+        cont = ApplicationController.new
+        user = User.new(:username => "othman", :password => "123456789", :id => 1)
+        todo = Todo.new({:user_id =>1, :description =>"first" ,:id => 1})
+        allow(User).to receive(:find_by).with({:id => 1}).and_return(user)
+        token = cont.encode_token({user_id: user.id})
+        headers = {:Authorization => "Bearer #{token}"}
+        allow(Todo).to receive(:find).with("1").and_return(todo)
+        allow(todo).to receive(:update).and_return(false)
+        patch "/todos/1",
+        params: {}, headers: {:completed => true ,:Authorization => "Bearer #{token}"} , as: :json
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.content_type).to eq("application/json; charset=utf-8")
       end
@@ -185,13 +183,30 @@ RSpec.describe "/todos", type: :request do
 
   describe "DELETE /destroy" do
     it "destroys the requested todo" do
+      cont = ApplicationController.new
+      user = User.new(:username => "othman", :password => "123456789", :id => 1)
+      todo = Todo.new({:user_id =>1, :description =>"first" ,:id => 1})
+      allow(User).to receive(:find_by).with({:id => 1}).and_return(user)
+      token = cont.encode_token({user_id: user.id})
+      headers = {:Authorization => "Bearer #{token}"}
+      allow(Todo).to receive(:find).with("1").and_return(todo)
+      allow(Todo).to receive(:count).and_return(1,0)
       expect {
-        delete "/todos/#{@todo_id }", headers: @valid_headers, as: :json
+        delete "/todos/1", headers: headers, as: :json
       }.to change(Todo, :count).by(-1)
     end
     it "it does not destroys the to do if it is not yours" do
+      cont = ApplicationController.new
+        user = User.new(:username => "othman", :password => "123456789", :id => 2)
+        todo = Todo.new({:user_id =>1, :description =>"first" ,:id => 1})
+        allow(User).to receive(:find_by).with({:id => 2}).and_return(user)
+        token = cont.encode_token({user_id: user.id})
+        headers = {:Authorization => "Bearer #{token}"}
+        allow(Todo).to receive(:find).with({:id => 1}).and_return(todo)
+        allow(Todo).to receive(:find).with("1").and_return(todo)
+        allow(Todo).to receive(:count).and_return(0,0)
       expect {
-        delete "/todos/#{@todo_id }", headers: {:Authorization => "Bearer #{@token2}"}, as: :json
+        delete "/todos/1", headers: {:Authorization => "Bearer #{token}"}, as: :json
       }.to change(Todo, :count).by(0)
     end
   end
