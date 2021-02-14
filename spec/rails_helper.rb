@@ -6,7 +6,10 @@ require File.expand_path('../config/environment', __dir__)
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
-
+require 'webmock'
+include WebMock::API
+require './app/controllers/application_controller'
+WebMock.enable!
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end
@@ -25,7 +28,49 @@ require 'rspec/rails'
 # Checks for pending migrations and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove these lines.
 begin
-  ActiveRecord::Migration.maintain_test_schema!
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+
+    ActiveRecord::Schema.define(version: 2021_02_09_142032) do
+    
+      create_table "todos", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+        t.string "description"
+        t.bigint "user_id", null: false
+        t.boolean "completed"
+        t.datetime "created_at", precision: 6, null: false
+        t.datetime "updated_at", precision: 6, null: false
+        t.index ["user_id"], name: "index_todos_on_user_id"
+      end
+    
+      create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+        t.string "username"
+        t.string "password_digest"
+        t.datetime "created_at", precision: 6, null: false
+        t.datetime "updated_at", precision: 6, null: false
+      end
+    
+      add_foreign_key "todos", "users"
+    end
+    class User < ApplicationRecord
+        
+      has_secure_password
+      has_many :todos
+      validates :username, uniqueness: true, presence: true, length: { in: 6..20 }
+    end
+    class Todo < ApplicationRecord
+      belongs_to :user
+      validates :description, presence: true
+    end
+    
+    
+    RSpec.configure do |config|
+      config.around do |example|
+        ActiveRecord::Base.transaction do
+          example.run
+    
+          raise ActiveRecord::Rollback
+        end
+      end
+    end
 rescue ActiveRecord::PendingMigrationError => e
 end
 RSpec.configure do |config|
@@ -67,3 +112,5 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
+
+

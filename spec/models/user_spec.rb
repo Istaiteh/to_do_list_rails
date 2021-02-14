@@ -1,6 +1,8 @@
 require "rspec/expectations"
 require 'rails_helper'
 
+
+
 RSpec.describe User, type: :model do
   before(:example) do
     Todo.delete_all
