@@ -1,6 +1,6 @@
 class TodosController < ApplicationController
   before_action :authorized
-  before_action :set_todo, only: [:show, :update, :destroy]
+
 
   # GET /todos
   def index
@@ -11,6 +11,7 @@ class TodosController < ApplicationController
 
   # GET /todos/1
   def show
+    @todo = Todo.find(params[:id])
     if @user.id != @todo.user_id
       render json: {error: "It is not your item"}, :status => :unauthorized
     else 
@@ -32,6 +33,7 @@ class TodosController < ApplicationController
 
   # PATCH/PUT /todos/1
   def update
+    @todo = Todo.find(params[:id])
     if @user.id != @todo.user_id
       render json: {error: "It is not your list"}, :status => :unauthorized
     else
@@ -48,19 +50,17 @@ class TodosController < ApplicationController
 
   # DELETE /todos/1
   def destroy
+    @todo = Todo.find(params[:id])
     if @user.id != @todo.user_id
-      render json: {error: "It is not your list", status: :unauthorized}
+      render json: {error: "It is not your list"}, status: :unauthorized
     else 
       @todo.destroy
-      render json: {message: "deleted successfully", status: :success}
+      render json: {message: "deleted successfully"}, status: :ok
     end
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_todo
-      @todo = Todo.find(params[:id])
-    end
+
 
     # Only allow a list of trusted parameters through.
     def description
